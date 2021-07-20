@@ -44,9 +44,9 @@ class App extends React.Component {
 
     ctx.fillStyle = "Blue";
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 2;
-    ctx.shadowBlur = 2;
-    ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "green";
 
     /* инициализация радиоприемников */
     for (let i = 0; i < this.c; i++) {
@@ -58,7 +58,7 @@ class App extends React.Component {
       this.receivers[i].x = x;
       this.receivers[i].y = y;
       this.receivers[i].draw = function (ctx, x, y) {
-        ctx.fillRect(x, y, 15, 15);
+        ctx.fillRect(x, y, 5, 5);
       };
 
       this.receivers[i].draw(ctx, x, y);
@@ -77,14 +77,6 @@ class App extends React.Component {
     );
 
     this.Calculate(ctx);
-
-    // this.Transmitter.draw(ctx, this.Transmitter.x, this.Transmitter.y);
-
-    // ctx.beginPath();
-    // ctx.arc(50, 50, 50, 0, Math.PI * 2, false);
-    // ctx.moveTo(50, 50);
-    // ctx.fill();
-    // ctx.closePath();
   }
 
   Calculate(ctx) {
