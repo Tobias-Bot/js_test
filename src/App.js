@@ -4,7 +4,9 @@ import React from "react";
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      FileIsLoad: false,
+    };
 
     this.c = 3;
     this.v = 1000;
@@ -38,8 +40,11 @@ class App extends React.Component {
   }
 
   Draw() {
+    //this.setState({ FileIsLoad: false });
+
     let cnvs = this.CnvsRef.current;
     let ctx = cnvs.getContext("2d");
+    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
 
     /* инициализация радиопередатчика */
     this.Transmitter.x = this.getRandom(
@@ -128,7 +133,7 @@ class App extends React.Component {
       ctx.fill();
       ctx.closePath();
 
-      if (!j) {
+      if (j) {
         ctx.lineTo(this.prevX, this.prevY);
         ctx.stroke();
       }
@@ -173,6 +178,8 @@ class App extends React.Component {
       for (let i = 1; i < data.length; i++) {
         this.times[i - 1] = data[i].split(",");
       }
+
+      this.setState({ FileIsLoad: true });
     }.bind(this);
 
     reader.onerror = function () {
@@ -181,11 +188,16 @@ class App extends React.Component {
   }
 
   render() {
+    let isLoad = this.state.FileIsLoad;
+
     return (
       <div>
         <canvas ref={this.CnvsRef}>Обновите браузер</canvas>
-        <input type="file" ref={this.FileInRef} onChange={this.fileUpload} />
-        <button onClick={this.Draw}>пуск</button>
+        {isLoad ? (
+          <button onClick={this.Draw}>пуск</button>
+        ) : (
+          <input type="file" ref={this.FileInRef} onChange={this.fileUpload} />
+        )}
       </div>
     );
   }
