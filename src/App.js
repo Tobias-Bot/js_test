@@ -8,11 +8,11 @@ class App extends React.Component {
       FileIsLoad: false,
     };
 
-    this.c = 3;
-    this.v = 1000;
-    this.period = 1000;
+    this.c = 3;                   // количество приемников
+    this.v = 1000;                // скорость передачи сигнала
+    this.period = 1000;           // время, через которое принимается сиглал (в мс)
 
-    this.space = 30;
+    this.space = 30;              // координаты передатчика
     this.spaceTransmitter = 20;
 
     this.prevX = 0;
@@ -27,8 +27,8 @@ class App extends React.Component {
       },
     };
 
-    this.receivers = [];
-    this.times = [];
+    this.receivers = [];          // массив приемников
+    this.times = [];              // значения времени передачи сигнала
 
     this.CnvsRef = React.createRef();
     this.FileInRef = React.createRef();
@@ -39,9 +39,8 @@ class App extends React.Component {
     this.fileUpload = this.fileUpload.bind(this);
   }
 
+  /* Функция отрисовки */
   Draw() {
-    //this.setState({ FileIsLoad: false });
-
     let cnvs = this.CnvsRef.current;
     let ctx = cnvs.getContext("2d");
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
@@ -62,13 +61,16 @@ class App extends React.Component {
     ctx.shadowBlur = 10;
     ctx.shadowColor = "green";
 
+    /* отрисовка приемников */
     for (let i = 0; i < this.c; i++) {
       this.receivers[i].draw(ctx);
     }
 
+    /* Вычислиние координат движущегося объекта */
     this.Calculate(ctx);
   }
 
+  /* Функция расчета координат объекта */
   Calculate(ctx) {
     ctx.shadowBlur = 0;
     ctx.shadowColor = "rgba(0, 0, 0, 0)";
@@ -83,10 +85,12 @@ class App extends React.Component {
     let timer = setInterval(() => {
       let r = [];
 
+      /* Вычисление радиуса для каждой окружности */
       r[0] = this.v * this.times[j][0];
       r[1] = this.v * this.times[j][1];
       r[2] = this.v * this.times[j][2];
 
+      /* Вычисление координат точки, в которой пересекаются окружности */
       let x =
         ((recv[1].y - recv[0].y) *
           (r[1] * r[1] -
@@ -125,8 +129,7 @@ class App extends React.Component {
           ((recv[2].x - recv[1].x) * (recv[0].y - recv[1].y) -
             (recv[1].x - recv[0].x) * (recv[1].y - recv[2].y)));
 
-      console.log(x, y);
-
+      /* Отрисовка точек и траектории движения */
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, Math.PI * 2, false);
       ctx.moveTo(x, y);
@@ -143,14 +146,18 @@ class App extends React.Component {
 
       j++;
 
+      /* Остановка таймера, если данных больше нет */
       j === this.times.length && clearInterval(timer);
+
     }, this.period);
   }
 
+  /* Функция получения случайного значения */
   getRandom(max, min) {
     return Math.random() * (max - min) + min;
   }
 
+  /* Функция обработки загруженного файла */
   fileUpload() {
     let file = this.FileInRef.current.files[0];
 
