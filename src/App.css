@@ -1,9 +1,17 @@
 canvas {
-    position: absolute;
-    top: 10%;
-    left: 5%;
-    right: 5%;
-    height: 80vh;
-    border-radius: 10px;
-    box-shadow: 5px 0px 10px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80vw;
+  height: 80vh;
+  border-radius: 10px;
+  box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.3);
+}
+
+input {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
 }

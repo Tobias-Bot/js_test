@@ -20,53 +20,28 @@ class App extends React.Component {
       x: 0,
       y: 0,
 
-      draw: function (ctx, x, y) {
-        ctx.fillRect(x, y, 8, 8);
+      draw: function (ctx) {
+        ctx.fillRect(this.x, this.y, 8, 8);
       },
     };
 
     this.receivers = [];
+    this.times = [];
 
     this.CnvsRef = React.createRef();
+    this.FileInRef = React.createRef();
 
-    this.CnvsInit = this.CnvsInit.bind(this);
+    this.Draw = this.Draw.bind(this);
     this.getRandom = this.getRandom.bind(this);
     this.Calculate = this.Calculate.bind(this);
+    this.fileUpload = this.fileUpload.bind(this);
   }
 
-  componentDidMount() {
-    this.CnvsInit();
-  }
-
-  CnvsInit() {
+  Draw() {
     let cnvs = this.CnvsRef.current;
     let ctx = cnvs.getContext("2d");
 
-    ctx.fillStyle = "Blue";
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = "green";
-
-    /* инициализация радиоприемников */
-    for (let i = 0; i < this.c; i++) {
-      let x = this.getRandom(cnvs.width - this.space, this.space);
-      let y = this.getRandom(cnvs.height - this.space, this.space);
-
-      this.receivers[i] = {};
-
-      this.receivers[i].x = x;
-      this.receivers[i].y = y;
-      this.receivers[i].draw = function (ctx, x, y) {
-        ctx.fillRect(x, y, 5, 5);
-      };
-
-      this.receivers[i].draw(ctx, x, y);
-    }
-
     /* инициализация радиопередатчика */
-    ctx.fillStyle = "Orange";
-
     this.Transmitter.x = this.getRandom(
       cnvs.width - (this.space + this.spaceTransmitter),
       this.space + this.spaceTransmitter
@@ -76,11 +51,20 @@ class App extends React.Component {
       this.space + this.spaceTransmitter
     );
 
+    ctx.fillStyle = "Blue";
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "green";
+
+    for (let i = 0; i < this.c; i++) {
+      this.receivers[i].draw(ctx);
+    }
+
     this.Calculate(ctx);
   }
 
   Calculate(ctx) {
-    let cnvs = this.CnvsRef.current;
     ctx.shadowBlur = 0;
     ctx.shadowColor = "rgba(0, 0, 0, 0)";
 
@@ -89,13 +73,14 @@ class App extends React.Component {
     ctx.strokeStyle = "Red";
     ctx.fillStyle = "Black";
 
-    setInterval(() => {
+    let j = 0;
 
+    let timer = setInterval(() => {
       let r = [];
 
-      r[0] = (this.v * this.getRandom(9, 1)) / 100;
-      r[1] = (this.v * this.getRandom(9, 1)) / 100;
-      r[2] = (this.v * this.getRandom(9, 1)) / 100;
+      r[0] = this.v * this.times[j][0];
+      r[1] = this.v * this.times[j][1];
+      r[2] = this.v * this.times[j][2];
 
       let x =
         ((recv[1].y - recv[0].y) *
@@ -135,7 +120,7 @@ class App extends React.Component {
           ((recv[2].x - recv[1].x) * (recv[0].y - recv[1].y) -
             (recv[1].x - recv[0].x) * (recv[1].y - recv[2].y)));
 
-      // console.log(x, y);
+      console.log(x, y);
 
       ctx.beginPath();
       ctx.arc(x, y, 2, 0, Math.PI * 2, false);
@@ -143,20 +128,17 @@ class App extends React.Component {
       ctx.fill();
       ctx.closePath();
 
-      ctx.lineTo(this.prevX, this.prevY);
-      ctx.stroke();
+      if (!j) {
+        ctx.lineTo(this.prevX, this.prevY);
+        ctx.stroke();
+      }
 
       this.prevX = x;
       this.prevY = y;
 
-      this.Transmitter.x = this.getRandom(
-        cnvs.width - (this.space + this.spaceTransmitter),
-        this.space + this.spaceTransmitter
-      );
-      this.Transmitter.y = this.getRandom(
-        cnvs.height - (this.space + this.spaceTransmitter),
-        this.space + this.spaceTransmitter
-      );
+      j++;
+
+      j === this.times.length && clearInterval(timer);
     }, this.period);
   }
 
@@ -164,10 +146,46 @@ class App extends React.Component {
     return Math.random() * (max - min) + min;
   }
 
+  fileUpload() {
+    let file = this.FileInRef.current.files[0];
+
+    let reader = new FileReader();
+    reader.readAsText(file);
+
+    reader.onload = function () {
+      let data = reader.result.split("\r\n");
+
+      let recvsXY = data[0].split(",");
+
+      let j = 0;
+      for (let i = 0; i < this.c; i++) {
+        this.receivers[i] = {};
+
+        this.receivers[i].x = Number(recvsXY[j]);
+        this.receivers[i].y = Number(recvsXY[j + 1]);
+        this.receivers[i].draw = function (ctx) {
+          ctx.fillRect(this.x, this.y, 5, 5);
+        };
+
+        j += 2;
+      }
+
+      for (let i = 1; i < data.length; i++) {
+        this.times[i - 1] = data[i].split(",");
+      }
+    }.bind(this);
+
+    reader.onerror = function () {
+      console.log(reader.error);
+    };
+  }
+
   render() {
     return (
       <div>
         <canvas ref={this.CnvsRef}>Обновите браузер</canvas>
+        <input type="file" ref={this.FileInRef} onChange={this.fileUpload} />
+        <button onClick={this.Draw}>пуск</button>
       </div>
     );
   }
